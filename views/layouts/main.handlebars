@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy"
+        crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
+        <link href="/css/style.css" rel="stylesheet" />
+
+    <title>Express api</title>
+</head>
+
+<body>
+    {{> navbar}}
+    <div class="container">
+        {{{body}}}
+        <div class="chatcontent">
+            <div id="myChat" class="collapse well">
+                <div class="output">
+                </div>
+                <input type="text" class="form-control messageInputUser">
+            </div>
+            <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#myChat">Live chat</button>
+        </div>
+    </div>
+
+    <script>
+        //var socket = io(),
+        //robotHello = $('.robotHello'),
+        //myChat = $('#myChat');
+        //socket.on('loginUser', function (user) {
+        //    myChat.find(robotHello).text('Hello ' + user.name);
+        //    $(myChat).collapse('toggle');
+        //})
+        
+        var chat = io('http://127.0.0.1:3000/chat');
+        var robotHello = $('.robotHello');
+        var myChat = $('#myChat');
+        
+        chat.emit('usersList', window.location.href);
+
+        chat.on('enterUser', function () {
+            myChat.find('.output').append(`
+                <p>Admin: Can we help you !!! </p>
+            `);
+            myChat.find(robotHello).text('Hello Karen');
+            myChat.collapse('toggle');
+        });
+
+        chat.on('usersList', function (data) {
+            alert(5);
+            $.each(data, function (k, v) {  
+                $('.adminPanel').append(`
+                    <div class="col-sm-3">
+                        <div calss="wellContent">
+                            <div id="${v.id}" class="well collapse show">
+                                <div class="output"></div>
+                                <input type="text" class="form-control messageInput">
+                            </div>
+                            <button type="button" class="adminUserBtn btn btn-info" data-toggle="collapse" data-target="#${v.id}">${v.role} - ${v.id}</button>
+                        </div>
+                    </div>
+                `)
+            })
+        });
+
+        $(document).on('keypress', '.messageInput',  function(e){
+            if(e.which == 13){
+                var message = $(this).val();
+                var chatroom = $(this).closest('.well').attr('id')
+                 chat.emit('chatToUser', {
+                    message: message,
+                    chatroom: chatroom
+                });
+            }
+        });
+
+         chat.on('chatToUser', function (data) {
+           alert(data)
+             
+            //var myid = data.chatroom;
+            //$('#' + myid).find('.output').append(`
+             //   <p>Admin: ${data.message} </p>
+            //`);
+            //$('#' + myid).find('input').val('')
+        });
+        
+         $(document).on('keypress', '.messageInputUser',  function(e){
+            if(e.which == 13){
+                var message = $(this).val();
+                 chat.emit('chatToAdmin', {
+                    message: message,
+                });
+            }
+        });
+
+        chat.on('chatToAdmin', function (data) {
+            myChat.find('.output').append(`
+                <p>User: ${data.message} </p>
+            `);
+            myChat.find('input').val('')
+        });
+        
+    </script>
+</body>
+
+</html>

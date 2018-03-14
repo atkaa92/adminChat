@@ -1,0 +1,48 @@
+<table class="table table-bordered">
+    <thead>
+      <tr>
+        {{#each rows as |value key|}}
+            {{#if (checkEqual key 0) }}
+                {{#each this as |childValue childKey|}}
+                        <th>{{childKey}}</th>
+                {{/each}}
+            {{/if}}
+        {{/each}}
+      </tr>
+    </thead>
+    <tbody>
+        {{#each rows as |value key|}}
+            <tr>
+                {{#each this as |childValue childKey|}}
+                    {{#if (checkEqual childKey 'created_at') }}
+                        <td>{{formatDate childValue 'MMMM Do YYYY'}}</td>
+                    {{else}}
+                        {{#if (checkEqual childKey 'updated_at')}}
+                            <td>{{formatDate childValue 'MMMM Do YYYY'}}</td>
+                        {{else}}
+                            <td>{{childValue}}</td>
+                        {{/if}}
+                    {{/if}}
+                {{/each}}
+            </tr>
+        {{else}}
+            <p>No row found</p>
+        {{/each}}
+      <tr>
+      </tr>
+    </tbody>
+  </table>
+ {{#if rows}}
+  <ul class="pagination pagination-sm">
+    {{#paginate pagination type="first"}}
+      <li class="middle" {{#if disabled}}class="disabled"{{/if}}><a href="?p={{n}}">First</a></li>
+    {{/paginate}}
+    {{#paginate pagination type="middle" limit="15"}}
+      <li class="middle" {{#if active}}class="active"{{/if}}><a href="?p={{n}}">{{n}}</a></li>
+    {{/paginate}}
+    {{#paginate pagination type="last"}}
+      <li class="middle" {{#if disabled}}class="disabled"{{/if}}><a href="?p={{n}}">Last</a></li>
+    {{/paginate}}
+  </ul>
+{{/if}}
+  

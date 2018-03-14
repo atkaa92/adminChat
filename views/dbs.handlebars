@@ -1,0 +1,12 @@
+<div class="row">
+{{#each db_names}}
+<div class="col-lg-4" style="margin-top:12px">
+    <div class="card card-body">
+        <h4 style="text-align:center">{{table_name}}</h4>
+        <a class="mb-2 btn btn-dark btn-block" href="/dbs/{{table_name}}">Show rows</a>
+    </div>
+</div>
+{{else}}
+<p>No db found</p>
+{{/each}}
+</div>
