@@ -43,7 +43,7 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 //global variables
-app.use((req, res, next) => {
+app.use((req, res,  next) => {
     res.locals.pagination = {
         page: 1,
         pageCount: 10,
@@ -64,4 +64,5 @@ var server = app.listen(port, () => {
 })
 
 var io = socket(server);
+
 const chats = require('./routes/chats')(io, app);

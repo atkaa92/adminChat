@@ -33,15 +33,7 @@
         </div>
     </div>
 
-    <script>
-        //var socket = io(),
-        //robotHello = $('.robotHello'),
-        //myChat = $('#myChat');
-        //socket.on('loginUser', function (user) {
-        //    myChat.find(robotHello).text('Hello ' + user.name);
-        //    $(myChat).collapse('toggle');
-        //})
-        
+    <script>      
         var chat = io('http://127.0.0.1:3000/chat');
         var robotHello = $('.robotHello');
         var myChat = $('#myChat');
@@ -50,26 +42,32 @@
 
         chat.on('enterUser', function () {
             myChat.find('.output').append(`
-                <p>Admin: Can we help you !!! </p>
+                <p>Admin: Can we help you.</p>
             `);
             myChat.find(robotHello).text('Hello Karen');
             myChat.collapse('toggle');
         });
 
         chat.on('usersList', function (data) {
-            alert(5);
-            $.each(data, function (k, v) {  
-                $('.adminPanel').append(`
-                    <div class="col-sm-3">
+            let alredyExists = {}
+            $.each($('.usersColumn'), function (index, value) { 
+                let id = $(this).find('.well').attr('id')
+                alredyExists[id] = id 
+            });
+            $.each(data.allLoginUsers, function (k, v) {
+                if(alredyExists[k] != v.id && data.thisId != v.id){
+                     $('.adminPanel').append(`
+                    <div class="col-sm-3 usersColumn">
                         <div calss="wellContent">
                             <div id="${v.id}" class="well collapse show">
                                 <div class="output"></div>
                                 <input type="text" class="form-control messageInput">
                             </div>
-                            <button type="button" class="adminUserBtn btn btn-info" data-toggle="collapse" data-target="#${v.id}">${v.role} - ${v.id}</button>
+                            <button type="button" class="adminUserBtn btn btn-info" data-toggle="collapse" data-target="#${v.id}">${v.role}\` ${v.id}</button>
                         </div>
                     </div>
                 `)
+                }
             })
         });
 
@@ -77,37 +75,40 @@
             if(e.which == 13){
                 var message = $(this).val();
                 var chatroom = $(this).closest('.well').attr('id')
+                $('#' + chatroom).find('.output').append(`<p>Admin: ${message} </p>`);
+                $('#' + chatroom).find('input').val('')
                  chat.emit('chatToUser', {
                     message: message,
                     chatroom: chatroom
                 });
             }
         });
-
-         chat.on('chatToUser', function (data) {
-           alert(data)
-             
-            //var myid = data.chatroom;
-            //$('#' + myid).find('.output').append(`
-             //   <p>Admin: ${data.message} </p>
-            //`);
-            //$('#' + myid).find('input').val('')
+        
+        chat.on('adminChatToUser', function (data) {
+           $('#myChat').find('.output').append(`
+               <p>Admin: ${data.message} </p>
+           `);
         });
         
-         $(document).on('keypress', '.messageInputUser',  function(e){
+        chat.on('someoneDisconected', function (data) {
+            $('#' + data).closest('.usersColumn').remove()
+        });
+        
+        $(document).on('keypress', '.messageInputUser',  function(e){
             if(e.which == 13){
                 var message = $(this).val();
-                 chat.emit('chatToAdmin', {
+                myChat.find('.output').append(`
+                <p>User: ${message} </p>
+                `);
+                myChat.find('input').val('')
+                chat.emit('chatToAdmin', {
                     message: message,
                 });
             }
         });
 
         chat.on('chatToAdmin', function (data) {
-            myChat.find('.output').append(`
-                <p>User: ${data.message} </p>
-            `);
-            myChat.find('input').val('')
+            $('#' + data.chatroom).find('.output').append(`<p>User: ${data.message} </p>`);
         });
         
     </script>

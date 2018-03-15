@@ -2,44 +2,64 @@ const socket = require('socket.io');
 
 module.exports = (function (io, app) {
     var allLoginUsers = {};
-    
     io.of('/chat')
     .on('connection', function (socket) {
-    //    console.log("Connected` " + socket.client.id);
+       console.log("Connected` " + socket.client.id);
         allLoginUsers[socket.client.id] = {id: socket.client.id, role : ''};
-        console.log(allLoginUsers);
-        setTimeout(function(){
-            socket.emit('enterUser');
-        }, 2000);
-
-        socket.emit('usersList', allLoginUsers);
+        
+        setTimeout(function(){ 
+            socket.emit('enterUser'); 
+        }, 3000);
         
         socket.on('usersList', function(data){
-            console.log(155641);
             var role = 'user';
             if(data.indexOf("dbs/admin") > -1) {
                 role = 'admin';
             }
             allLoginUsers[socket.client.id]['role'] = role;
-            // socket.emit('usersList', allLoginUsers);
+            clients = io.of('/chat').clients();
+            conClients = clients.connected
+            for (var p in conClients) {
+                if (allLoginUsers[conClients[p].client.id]['role'] == 'admin') {
+                    // let usersForAdmin = allLoginUsers;
+                    // delete usersForAdmin[conClients[p].client.id];
+                    conClients[p].emit('usersList', {allLoginUsers :allLoginUsers, thisId : conClients[p].client.id});
+                }
+            }
         });
 
         socket.on('disconnect', function () {
             delete allLoginUsers[socket.client.id];
-            socket.emit('usersList', allLoginUsers);
-            // console.log("Disconnected` " + socket.client.id);
+            clients = io.of('/chat').clients();
+            conClients = clients.connected
+            for (var p in conClients) {
+                if (allLoginUsers[conClients[p].client.id]['role'] == 'admin') {
+                    conClients[p].emit('someoneDisconected', socket.client.id);
+                }
+            }
+            console.log("Disconnected` " + socket.client.id);
         });
 
         socket.on('chatToUser', function (data) {
-            // socket.emit('chatToUser', data);
-
-            io.sockets.connected[data.chatroom].emit('chatToUser', data);
+            clients = io.of('/chat').clients();
+            conClients = clients.connected
+            for (var p in conClients) {
+                if (allLoginUsers[conClients[p].client.id]['id'] == data.chatroom) {
+                    conClients[p].emit('adminChatToUser', data);
+                }
+            }
         });
 
         socket.on('chatToAdmin', function (data) {
-            socket.emit('chatToAdmin', data);
+            currId = socket.client.id
+            data.chatroom = currId;
+            clients = io.of('/chat').clients();
+            conClients = clients.connected
+            for (var p in conClients) {
+                if (allLoginUsers[conClients[p].client.id]['role'] == 'admin') {
+                    conClients[p].emit('chatToAdmin', data);
+                }
+            }
         });
-        
-        // console.log(allLoginUsers);
     });
 });
